@@ -6,7 +6,11 @@ import plotly.graph_objects as go
 
 import inspect
 
-st.title("#WOW2025 WEEK 15")
+from pages import pg_home
+
+st.page_link(pg_home, label="Home", icon="🏠")
+
+st.title("[#WOW2025 WEEK 15](https://workout-wednesday.com/2025w15tab/)")
 st.markdown("#### Visualize the population by age and gender in a population pyramid")
 
 DATA_SOURCE = "https://gitee.com/chenyulue/data_samples/raw/main/wow/EU27_population_2015-2024.CSV"
