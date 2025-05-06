@@ -8,3 +8,9 @@ pg_wow25week15 = st.Page(
     icon="📅",
     url_path="wow25week15",
 )
+
+pg_wow25week16 = st.Page(
+    "wow/2025/week_16.py",
+    title="Week 16 - Dynamic Zone Visibility",
+    icon="📅",
+)

@@ -7,20 +7,26 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 
-# from pages import pg_home
+from pages import pg_home
 
-# st.page_link(pg_home, label="Home", icon="🏠")
+st.page_link(pg_home, label="Home", icon="🏠")
 
 if "state" not in st.session_state:
     st.session_state.state = "Pennsylvania"
 if "bar_state" not in st.session_state:
     st.session_state.bar_state = st.session_state.state
+if "year" not in st.session_state:
+    st.session_state.year = None
+if "month" not in st.session_state:
+    st.session_state.month = None
+if "line_state" not in st.session_state:
+    st.session_state.state_number = 15
 
 
 st.title("[#WOW2025 WEEK 16](https://workout-wednesday.com/2025w16tab/)")
-st.markdown("#### Visualize the population by age and gender in a population pyramid")
+st.markdown("#### Can you use Containers and Dynamic Zone Visibility?")
 
 DATA_SOURCE = (
     "https://gitee.com/chenyulue/data_samples/raw/main/wow/Sample-Superstore_Orders.csv"
@@ -63,11 +69,28 @@ try:
 
     bars = st.session_state.bars["selection"]["points"]
     if bars:
-        st.session_state.bar_state = bars[0]["y"]
+        bar_state = bars[0]["y"]
+        bar_num = bars[0]["point_number"]
     else:
-        st.session_state.bar_state = st.session_state.state
+        bar_state = st.session_state.state
+        bar_num = 15
+
+    lines = st.session_state.lines["selection"]["points"]
+    if lines:
+        x_date = datetime.datetime.strptime(lines[0]["x"], "%Y-%m-%d")
+        year = x_date.year
+        month = x_date.month
+        state_number = lines[0]["curve_number"]
+    else:
+        year = None
+        month = None
+        state_number = bar_num
 except AttributeError:
-    pass
+    bar_state = st.session_state.state
+    bar_num = 15
+    year = None
+    month = None
+    state_number = bar_num
 
 
 @st.cache_data
@@ -350,11 +373,12 @@ def plot_profit_ratio_vs_sales_year(data_df, bar_df, state):
                 meta=[x],
                 x=filtered_df["Order_Month"],
                 y=filtered_df["Sales"],
-                mode="lines",
+                mode="lines+markers",
                 line=dict(
                     color=color,
                     width=line_width,
                 ),
+                marker_size=line_width,
                 showlegend=False,
                 zorder=zorder,
                 hovertemplate="<b>%{meta[0]}</b><br><b>%{x|%B %Y}</b><br>Sales: <b>%{y:$,}</b><extra></extra>",
@@ -370,11 +394,12 @@ def plot_profit_ratio_vs_sales_year(data_df, bar_df, state):
                 meta=[x],
                 x=filtered_df["Order_Month"],
                 y=filtered_df["Profit_Ratio"],
-                mode="lines",
+                mode="lines+markers",
                 line=dict(
                     color=color,
                     width=line_width,
                 ),
+                marker_size=line_width,
                 showlegend=False,
                 zorder=zorder,
                 hovertemplate="<b>%{meta[0]}</b><br><b>%{x|%B %Y}</b><br>Sales: <b>%{y:.0%}</b><extra></extra>",
@@ -433,8 +458,11 @@ def plot_profit_ratio_vs_sales_year(data_df, bar_df, state):
 
 
 @st.cache_data
-def plot_subcategory_sales(data_df, bar_df, state, year=None, month=None):
+def plot_subcategory_sales(data_df, bar_df, state_number, year=None, month=None):
     data_state = data_df.loc[data_df["State"].isin(bar_df["State"]), :]
+    state = bar_df["State"].iloc[
+        state_number if state_number < 16 else state_number - 16
+    ]
     if year is not None:
         data_state = data_state.loc[
             (data_state["Order Date"].dt.year == year)
@@ -487,6 +515,7 @@ def plot_subcategory_sales(data_df, bar_df, state, year=None, month=None):
                             side="top",
                         ),
                         len=0.5,
+                        thickness=10,
                         x=1,
                         xref="paper",
                         xanchor="left",
@@ -541,8 +570,14 @@ fig_1, profit_ratio_vs_sales_filtered = plot_profit_ratio_vs_sales(
 fig_2, bar_df = plot_bar_chart(
     profit_ratio_vs_sales, profit_ratio_vs_sales_filtered, st.session_state.state
 )
-fig_3 = plot_profit_ratio_vs_sales_year(data_df, bar_df, st.session_state.bar_state)
-fig_4 = plot_subcategory_sales(data_df, bar_df, st.session_state.bar_state)
+fig_3 = plot_profit_ratio_vs_sales_year(data_df, bar_df, bar_state)
+fig_4 = plot_subcategory_sales(
+    data_df,
+    bar_df,
+    state_number,
+    year,
+    month,
+)
 
 
 col1, col2 = st.columns([1, 1])
@@ -560,5 +595,3 @@ with col2:
         fig_3, theme=None, key="lines", on_select="rerun", selection_mode="points"
     )
     st.plotly_chart(fig_4, theme=None)
-
-print(st.session_state.lines)

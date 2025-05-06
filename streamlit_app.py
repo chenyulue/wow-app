@@ -6,6 +6,7 @@ pages = {
     "": [pg_home],
     "Workout Wednesday 2025": [
         pg_wow25week15,
+        pg_wow25week16,
     ],
 }
 

@@ -27,3 +27,10 @@ with row1[0]:
         icon="📅",
         help="Open Week 15 challenge",
     )
+with row1[1]:
+    st.page_link(
+        pg_wow25week16,
+        label="**Week 16**",
+        icon="📅",
+        help="Open Week 16 challenge",
+    )
